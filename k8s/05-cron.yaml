@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: events
+  namespace: densityplays
+spec:
+  schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: events
+            image: 192.168.6.241:5000/backend:latest-linux
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/ash
+            - -c
+            - /pb/pocketbase bungie-events
+            volumeMounts:
+            - name:  pb-data
+              mountPath:  /pb/pb_data
+          restartPolicy: OnFailure
+          volumes:
+            - name:  pb-data
+              persistentVolumeClaim:
+                claimName: densityplays

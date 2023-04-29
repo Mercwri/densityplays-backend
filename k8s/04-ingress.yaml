@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: densityplays
+  namespace: densityplays
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: densityplays.hdf.red
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: densityplays
+            port: 
+              number: 4173
+  - host: db.densityplays.hdf.red
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: densityplays
+            port: 
+              number: 8080
+  tls:
+    - hosts:
+      - densityplays.hdf.red
+      - db.densityplays.hdf.red
+      secretName: densityplays-tls

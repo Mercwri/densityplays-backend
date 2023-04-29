@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: densityplays
+  namespace: densityplays
+spec:
+  selector:
+    matchLabels:
+      app: densityplays
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        editor: vscode
+        app: densityplays
+    spec:
+      containers:
+      - name: backend
+        image: 192.168.6.241:5000/backend:latest-linux
+        ports:
+        - name:  http-backend
+          containerPort:  8080
+          protocol: TCP
+        volumeMounts:
+          - name:  pb-data
+            mountPath:  /pb/pb_data
+      - name: frontend
+        image:  192.168.6.241:5000/frontend:latest-linux
+        ports:
+        - name:  http-frontend
+          containerPort:  4173
+          protocol: TCP
+        env:
+          - name: VITE_PB_URL
+            value: "db.densityplays.hdf.red"
+      volumes:
+        - name:  pb-data
+          persistentVolumeClaim:
+            claimName: densityplays
