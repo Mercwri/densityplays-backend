@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sort"
@@ -178,6 +179,28 @@ func BungieEventsCmd(app *pocketbase.PocketBase) *cobra.Command {
 							}
 						}
 					}
+				}
+			}
+			users := []*models.Record{}
+			query.All(&users)
+			rendered_data_coll, _ := app.Dao().FindCollectionByNameOrId("rendered_data")
+			for _, u := range users {
+				url := fmt.Sprintf("https://db.densityplays/topkek/%s", u.Username())
+				mappy, err := http.Get(url)
+				if err != nil {
+					log.Fatal(err)
+				}
+				body, _ := io.ReadAll(mappy.Body)
+				datum, err := app.Dao().FindFirstRecordByData(rendered_data_coll.Id, "bnet_id.username", u.Username())
+				if err.Error() == "sql: no rows in result set" {
+					dm := models.NewRecord(rendered_data_coll)
+					dm.Set("bnet_user", u.Id)
+					dm.Set("rendered_data", body)
+					app.Dao().Save(dm)
+
+				} else {
+					datum.Set("rendered_data", body)
+					app.Dao().Save(datum)
 				}
 			}
 		},
